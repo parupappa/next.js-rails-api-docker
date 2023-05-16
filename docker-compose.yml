@@ -1,0 +1,37 @@
+# docker-compose.yml
+
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+  backend:
+    tty: true
+    build: ./backend
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - ./backend:/sample-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  frontend: 
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/app:/usr/src/app
+    command: 'yarn dev'
+    ports:
+      - "8000:3000"
+
+volumes:
+  db-data:
